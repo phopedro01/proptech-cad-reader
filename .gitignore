@@ -27,6 +27,12 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# Arquivos de teste local
+criar_teste.py
+testar_pipeline.py
+*.dxf
+*.pdf
+
 # Arquivos de build
 *.egg-info/
 dist/
