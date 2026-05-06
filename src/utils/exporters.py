@@ -82,35 +82,54 @@ def export_batch_to_excel(
     combined_tables: "dict[str, pd.DataFrame]",
     per_file: "list[tuple[str, dict[str, Any]]]",
     output_path: "str | Path",
+    summary_rows: "list[dict[str, Any]] | None" = None,
+    avisos_rows: "list[dict[str, Any]] | None" = None,
 ) -> Path:
     """
-    Cria um Excel com duas seções:
+    Cria um Excel com as seguintes abas (na ordem):
 
-    Abas 'COMB_{chave}' — tabelas mescladas de todos os arquivos
-                          (já contêm a coluna 'Arquivo').
-    Abas '{stem}_{chave}' — tabela individual por arquivo.
+    1. RESUMO          — status de todos os arquivos (parse, LLM, tempo, erro)
+    2. COMB_{chave}    — tabelas mescladas de todos os arquivos (coluna 'Arquivo')
+    3. {stem}_{chave}  — tabela individual por arquivo
+    4. AVISOS          — avisos e alertas emitidos pelo LLM por arquivo
 
     Parâmetros
     ----------
     combined_tables : resultado de BatchResult.combined_tables()
     per_file        : lista de (filename, llm_result) dos jobs bem-sucedidos
     output_path     : caminho do .xlsx a ser gerado
+    summary_rows    : linhas para a aba RESUMO
+    avisos_rows     : linhas para a aba AVISOS
     """
     output_path = Path(output_path)
     used_names: set[str] = set()
 
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
-        # Abas combinadas
+        # 1. Aba RESUMO (sempre presente)
+        if summary_rows:
+            pd.DataFrame(summary_rows).to_excel(
+                writer, sheet_name="RESUMO", index=False
+            )
+            used_names.add("RESUMO")
+
+        # 2. Abas combinadas
         for key, df in combined_tables.items():
             sheet = _safe_sheet_name(f"COMB_{key}", used_names)
             df.to_excel(writer, sheet_name=sheet, index=False)
 
-        # Abas por arquivo
+        # 3. Abas por arquivo
         for filename, llm_result in per_file:
             stem = Path(filename).stem
             frames = result_to_dataframe(llm_result)
             for key, df in frames.items():
                 sheet = _safe_sheet_name(f"{stem}_{key}", used_names)
                 df.to_excel(writer, sheet_name=sheet, index=False)
+
+        # 4. Aba AVISOS (apenas se houver)
+        if avisos_rows:
+            sheet = _safe_sheet_name("AVISOS", used_names)
+            pd.DataFrame(avisos_rows).to_excel(
+                writer, sheet_name=sheet, index=False
+            )
 
     return output_path

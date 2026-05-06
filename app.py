@@ -107,7 +107,7 @@ def _hash_bytes(data: bytes) -> str:
 
 
 def _batch_excel_bytes(batch_result: BatchResult) -> bytes | None:
-    """Gera Excel em memória a partir do BatchResult."""
+    """Gera Excel em memória com RESUMO, dados combinados, por arquivo e AVISOS."""
     try:
         combined = batch_result.combined_tables()
         per_file = [
@@ -115,9 +115,35 @@ def _batch_excel_bytes(batch_result: BatchResult) -> bytes | None:
             for j in batch_result.successful
             if j.llm_result
         ]
+
+        # Aba RESUMO — um linha por arquivo
+        summary_rows = [
+            {
+                "Arquivo":   j.filename,
+                "Tipo":      (j.file_type or "").upper(),
+                "Status":    "OK" if j.is_done else "Erro",
+                "Confiança": (j.llm_result or {}).get("confianca", "") if j.llm_result else "",
+                "Parse (s)": round(j.parse_duration_s, 2),
+                "LLM (s)":   round(j.llm_duration_s, 2),
+                "Total (s)": round(j.total_duration_s, 2),
+                "Erro":      j.error or "",
+            }
+            for j in batch_result.jobs
+        ]
+
+        # Aba AVISOS — um aviso por linha
+        avisos_rows = [
+            {"Arquivo": j.filename, "Aviso": aviso}
+            for j in batch_result.jobs
+            if j.llm_result
+            for aviso in (j.llm_result.get("avisos") or [])
+        ]
+
         with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
             tmp = f.name
-        export_batch_to_excel(combined, per_file, tmp)
+        export_batch_to_excel(combined, per_file, tmp,
+                              summary_rows=summary_rows,
+                              avisos_rows=avisos_rows or None)
         with open(tmp, "rb") as f:
             data = f.read()
         os.unlink(tmp)
