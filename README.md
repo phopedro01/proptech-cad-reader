@@ -1,6 +1,7 @@
 # PropTech — Leitor Inteligente de Projetos de Engenharia Civil
 
 [![GitHub](https://img.shields.io/badge/GitHub-phopedro01%2Fproptech--cad--reader-blue?logo=github)](https://github.com/phopedro01/proptech-cad-reader)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/phopedro01/proptech-cad-reader/blob/master/LICENSE)
 
 Extração automática de dados estruturados a partir de arquivos **DXF** (AutoCAD) e **PDF** de projetos de arquitetura e engenharia civil, com análise via **LLM** (OpenAI / Google Gemini) e interface **Streamlit**.
 
