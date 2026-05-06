@@ -181,6 +181,14 @@ pytest tests/ --cov=src --cov-report=term-missing
 
 ---
 
+## Links
+
+- **Repositório:** https://github.com/phopedro01/proptech-cad-reader
+- **Issues:** https://github.com/phopedro01/proptech-cad-reader/issues
+- **Releases:** https://github.com/phopedro01/proptech-cad-reader/releases
+
+---
+
 ## Licença
 
-MIT
+MIT — veja o arquivo [LICENSE](LICENSE) para detalhes.
